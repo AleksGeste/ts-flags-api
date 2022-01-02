@@ -1,3 +1,4 @@
+const btn = document.querySelector('.btn-country') as HTMLButtonElement
 const countriesContainer = document.querySelector(
   '.countries'
 )! as HTMLDivElement
@@ -54,7 +55,7 @@ const renderCountry = function (
 </article>
 `
   countriesContainer.insertAdjacentHTML('beforeend', html)
-  countriesContainer.style.opacity = '1'
+  // countriesContainer.style.opacity = '1'
 }
 
 /**
@@ -92,6 +93,10 @@ const getCountryData = function (country: string): void {
 
 // getCountryData('Russia')
 
+const renderError = function (message: string) {
+  countriesContainer.insertAdjacentText('beforeend', message)
+}
+
 /**
  * Get Countries using Promises
  * @param country Name of the country
@@ -108,6 +113,18 @@ const getCountryDataPr = function (country: string) {
     .then(data => {
       renderCountry(data[0], 'neighbour')
     })
+    .catch(err => {
+      // catch also returns promise
+      console.log(`${err} 💥💥💥`)
+      renderError(`Something went wrong: ${err.message}. Try again!`)
+    })
+    .finally(() => {
+      // always need to happened
+      countriesContainer.style.opacity = '1'
+      countriesContainer.style.marginBottom = '10px'
+    })
 }
 
-getCountryDataPr('Latvia')
+btn.addEventListener('click', function () {
+  getCountryDataPr('Latvia')
+})
