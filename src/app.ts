@@ -1,7 +1,10 @@
-const btn = document.querySelector('.btn-country') as HTMLButtonElement
+// selectors from index
 const countriesContainer = document.querySelector(
   '.countries'
 )! as HTMLDivElement
+const form = document.querySelector('form')!
+const latitude = document.getElementById('latitude')! as HTMLInputElement
+const longitude = document.getElementById('longitude')! as HTMLInputElement
 
 interface CountryInfo {
   name: { common: string }
@@ -10,7 +13,7 @@ interface CountryInfo {
   population: number
   languages: Dictionary
   currencies: Dictionary
-  borders: string[]
+  borders: string[] | undefined
 }
 
 export interface Flags {
@@ -28,6 +31,7 @@ export interface Dictionary {
 type CountryResponse = {
   status: number
   statusText: string
+  ok: boolean
   json: any
 }
 
@@ -55,7 +59,6 @@ const renderCountry = function (
 </article>
 `
   countriesContainer.insertAdjacentHTML('beforeend', html)
-  // countriesContainer.style.opacity = '1'
 }
 
 /**
@@ -93,8 +96,29 @@ const getCountryData = function (country: string): void {
 
 // getCountryData('Russia')
 
+/**
+ * Display Error message if it happened
+ * @param message Error message
+ */
 const renderError = function (message: string) {
   countriesContainer.insertAdjacentText('beforeend', message)
+}
+
+/**
+ * Function which receive upl as parameter and return promise
+ * @param url
+ * @param errorMessage
+ */
+const getJSON = function (
+  url: string,
+  errorMessage: string = 'Something went wrong'
+): Promise<CountryInfo[]> {
+  return fetch(url).then<CountryInfo[]>((response: CountryResponse) => {
+    if (!response.ok) {
+      throw new Error(`${errorMessage} (${response.status})`)
+    }
+    return response.json()
+  })
 }
 
 /**
@@ -102,20 +126,29 @@ const renderError = function (message: string) {
  * @param country Name of the country
  */
 const getCountryDataPr = function (country: string) {
-  fetch(`https://restcountries.com/v3.1/name/${country}`)
-    .then<CountryInfo[]>((response: CountryResponse) => response.json())
-    .then<CountryResponse>(data => {
+  getJSON(
+    `https://restcountries.com/v3.1/name/${country}`,
+    'Country not found: '
+  )
+    .then(data => {
       renderCountry(data[0])
-      const neighbour = data[0].borders[0]
-      return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`)
+      let neighbour: string
+
+      if (data[0].borders) {
+        neighbour = data[0].borders[0]
+      } else {
+        throw new Error('No neighbour found')
+      }
+      return getJSON(
+        `https://restcountries.com/v3.1/alpha/${neighbour}`,
+        'Country not found: '
+      )
     })
-    .then<CountryInfo[]>((response: CountryResponse) => response.json())
     .then(data => {
       renderCountry(data[0], 'neighbour')
     })
     .catch(err => {
       // catch also returns promise
-      console.log(`${err} 💥💥💥`)
       renderError(`Something went wrong: ${err.message}. Try again!`)
     })
     .finally(() => {
@@ -125,6 +158,30 @@ const getCountryDataPr = function (country: string) {
     })
 }
 
-btn.addEventListener('click', function () {
-  getCountryDataPr('Latvia')
-})
+function searchPlace(event: Event) {
+  event.preventDefault()
+  const enteredLatitude = latitude.value
+  const enteredLongitude = longitude.value
+
+  fetch(`https://geocode.xyz/${enteredLatitude},${enteredLongitude}?geoit=json`)
+    .then((response: CountryResponse) => {
+      if (response.status === 403) {
+        throw new Error('Server busy!')
+      }
+      return response.json()
+    })
+    .then(data => {
+      getCountryDataPr(data.country)
+    })
+    .catch(err => {
+      // catch also returns promise
+      renderError(`Something went wrong: ${err.message}. Try again later!`)
+    })
+    .finally(() => {
+      // always need to happened
+      countriesContainer.style.opacity = '1'
+      countriesContainer.style.marginBottom = '10px'
+    })
+}
+
+form.addEventListener('submit', searchPlace)
