@@ -19,5 +19,8 @@
   "dependencies": {
     "lite-server": "^2.6.1",
     "live-server": "^1.2.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.1"
   }
 }
