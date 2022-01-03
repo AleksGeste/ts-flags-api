@@ -14,6 +14,7 @@ interface CountryInfo {
   languages: Dictionary
   currencies: Dictionary
   borders: string[] | undefined
+  capital: string
 }
 
 export interface Flags {
@@ -60,6 +61,9 @@ const renderCountry = function (
 `
   countriesCont.insertAdjacentHTML('beforeend', html)
   messageCont.style.opacity = '0'
+
+  countriesCont.style.opacity = '1'
+  countriesCont.style.marginBottom = '10px'
 }
 
 /**
@@ -189,17 +193,11 @@ const getPosition: () => Promise<T> = function () {
 /**
  * Function for btn and workaround with promise with user geo
  */
-const findUser = function () {
+const findUser = async function () {
   countriesCont.innerHTML = ''
-  getPosition()
-    .then(data => {
-      // destructuring
-      const { latitude: lat, longitude: lon } = data.coords
-      fetchCountry(lat.toString(), lon.toString())
-    })
-    .catch(err => {
-      console.error(err)
-    })
+  const position = await getPosition()
+  const { latitude: lat, longitude: lon } = position.coords
+  await fetchCountry(lat.toString(), lon.toString())
 }
 
 btn.addEventListener('click', findUser)
