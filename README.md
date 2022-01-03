@@ -23,3 +23,11 @@
 10. `npm install --save-dev webpack webpack-cli webpack-dev-server typescript ts-loader`
 11. Create webpack.config.js and webpack.config.prod.js file and configure them
 12. Add scripts to the package.json file
+
+### upload to server
+1. create droplet
+2. setup nginx server
+3. go to www folder
+4. git clone repo
+5. run `npm i`
+6. run `npm run build`
