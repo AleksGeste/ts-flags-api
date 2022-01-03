@@ -1,10 +1,10 @@
 // selectors from index
-const countriesContainer = document.querySelector(
-  '.countries'
-)! as HTMLDivElement
+const countriesCont = document.querySelector('.countries')! as HTMLDivElement
+const messageCont = document.querySelector('.message')! as HTMLDivElement
 const form = document.querySelector('form')!
 const latitude = document.getElementById('latitude')! as HTMLInputElement
 const longitude = document.getElementById('longitude')! as HTMLInputElement
+const btn = document.querySelector('.btn-country') as HTMLButtonElement
 
 interface CountryInfo {
   name: { common: string }
@@ -58,50 +58,18 @@ const renderCountry = function (
 </div>
 </article>
 `
-  countriesContainer.insertAdjacentHTML('beforeend', html)
+  countriesCont.insertAdjacentHTML('beforeend', html)
+  messageCont.style.opacity = '0'
 }
-
-/**
- * Get country data without using Promises
- * @param country Name of the country
- */
-const getCountryData = function (country: string): void {
-  const request = new XMLHttpRequest()
-  request.open('GET', `https://restcountries.com/v3.1/name/${country}`)
-  // fetch data in background
-  request.send()
-
-  request.addEventListener('load', function () {
-    const [data] = JSON.parse(this.responseText)
-    console.log(data)
-
-    // render country one
-    renderCountry(data)
-
-    // get neighbour counties
-    const [...neighbours] = data.borders
-    console.log(neighbours)
-
-    neighbours.forEach((value: string) => {
-      const requestX = new XMLHttpRequest()
-      requestX.open('GET', `https://restcountries.com/v3.1/alpha/${value}`)
-      requestX.send()
-      requestX.addEventListener('load', function () {
-        const [dataX] = JSON.parse(this.responseText)
-        renderCountry(dataX, 'neighbour')
-      })
-    })
-  })
-}
-
-// getCountryData('Russia')
 
 /**
  * Display Error message if it happened
  * @param message Error message
  */
 const renderError = function (message: string) {
-  countriesContainer.insertAdjacentText('beforeend', message)
+  messageCont.innerHTML = ''
+  messageCont.style.opacity = '1'
+  messageCont.insertAdjacentText('beforeend', message)
 }
 
 /**
@@ -153,17 +121,18 @@ const getCountryDataPr = function (country: string) {
     })
     .finally(() => {
       // always need to happened
-      countriesContainer.style.opacity = '1'
-      countriesContainer.style.marginBottom = '10px'
+      countriesCont.style.opacity = '1'
+      countriesCont.style.marginBottom = '10px'
     })
 }
 
-function searchPlace(event: Event) {
-  event.preventDefault()
-  const enteredLatitude = latitude.value
-  const enteredLongitude = longitude.value
-
-  fetch(`https://geocode.xyz/${enteredLatitude},${enteredLongitude}?geoit=json`)
+/**
+ * Function fetching country by lat and lon
+ * @param lat
+ * @param lon
+ */
+const fetchCountry = function (lat: string, lon: string) {
+  fetch(`https://geocode.xyz/${lat},${lon}?geoit=json`)
     .then((response: CountryResponse) => {
       if (!response.ok) {
         throw new Error(`Server busy! ${response.status}`)
@@ -179,61 +148,58 @@ function searchPlace(event: Event) {
     })
     .finally(() => {
       // always need to happened
-      countriesContainer.style.opacity = '1'
-      countriesContainer.style.marginBottom = '10px'
+      countriesCont.style.opacity = '1'
+      countriesCont.style.marginBottom = '10px'
     })
 }
 
+/**
+ * Function for event listener. Get lan and lon from user and trigger fetch func
+ * @param event
+ */
+function searchPlace(event: Event) {
+  countriesCont.innerHTML = ''
+  event.preventDefault()
+  const enteredLatitude = latitude.value
+  const enteredLongitude = longitude.value
+  fetchCountry(enteredLatitude, enteredLongitude)
+}
+
+/**
+ * Listener for btn in form
+ */
 form.addEventListener('submit', searchPlace)
 
-// creating own Promise
-const lotteryPromise = new Promise(function (resolve, reject) {
-  console.log('Lottery draw is happening ... ')
+interface T {
+  coords: {
+    latitude: number
+    longitude: number
+  }
+}
 
-  // simple set timeout func for 2 sec
-  // to encapsulate async behavior
-  setTimeout(function () {
-    if (Math.random() > 0.5) {
-      resolve('You WIN 🎉')
-    } else {
-      reject(new Error('You lost you money 🙃'))
-    }
-  }, 2000)
-})
-
-// calling our Promise
-lotteryPromise
-  .then(data => {
-    console.log(data)
-  })
-  .catch(err => {
-    console.error(err)
-  })
-
-// real work example - Promisifying
-// func return Promise
-const wait = function (seconds: number) {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, seconds * 1000)
+/**
+ * Function get position from user browser and return promise
+ */
+const getPosition: () => Promise<T> = function () {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject)
   })
 }
 
-wait(1)
-  .then(() => {
-    console.log('I waited for 1 second')
-    return wait(1)
-  })
-  .then(() => {
-    console.log('I waited for 2 seconds')
-    return wait(1)
-  })
-  .then(() => {
-    console.log('I waited for 3 seconds')
-    return wait(1)
-  })
-  .then(() => {
-    console.log('I waited for 4 seconds')
-  })
+/**
+ * Function for btn and workaround with promise with user geo
+ */
+const findUser = function () {
+  countriesCont.innerHTML = ''
+  getPosition()
+    .then(data => {
+      // destructuring
+      const { latitude: lat, longitude: lon } = data.coords
+      fetchCountry(lat.toString(), lon.toString())
+    })
+    .catch(err => {
+      console.error(err)
+    })
+}
 
-Promise.resolve('abc').then(x => console.log(x))
-Promise.reject(new Error('xyz')).catch(x => console.error(x))
+btn.addEventListener('click', findUser)

@@ -26,7 +26,7 @@ body {
   align-items: center;
 }
 
-.countries {
+.countries, .message {
   /* margin-bottom: 8rem; */
   display: flex;
 
@@ -115,7 +115,7 @@ body {
   box-shadow: 0 2rem 5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
-input[type=text], select {
+input[type=text], select, .btn-country {
   width: 100%;
   padding: 12px 20px;
   margin: 8px 0;
@@ -125,7 +125,7 @@ input[type=text], select {
   box-sizing: border-box;
 }
 
-button[type=submit] {
+button[type=submit], .btn-country {
   width: 100%;
   background-color: #4CAF50;
   color: white;
@@ -136,7 +136,7 @@ button[type=submit] {
   cursor: pointer;
 }
 
-button[type=submit]:hover {
+button[type=submit]:hover, .btn-country {
   background-color: #45a049;
 }
 
@@ -151,5 +151,15 @@ form {
 }
 
 form label {
+  font-size: 14px;
+}
+
+#btn-user-search {
+  width: 100%;
+
+  padding:20px;
+}
+
+#btn-user-search label {
   font-size: 14px;
 }
