@@ -165,8 +165,8 @@ function searchPlace(event: Event) {
 
   fetch(`https://geocode.xyz/${enteredLatitude},${enteredLongitude}?geoit=json`)
     .then((response: CountryResponse) => {
-      if (response.status === 403) {
-        throw new Error('Server busy!')
+      if (!response.ok) {
+        throw new Error(`Server busy! ${response.status}`)
       }
       return response.json()
     })
@@ -175,7 +175,7 @@ function searchPlace(event: Event) {
     })
     .catch(err => {
       // catch also returns promise
-      renderError(`Something went wrong: ${err.message}. Try again later!`)
+      renderError(`Something went wrong: ${err.message}. Try again later! `)
     })
     .finally(() => {
       // always need to happened
@@ -185,3 +185,55 @@ function searchPlace(event: Event) {
 }
 
 form.addEventListener('submit', searchPlace)
+
+// creating own Promise
+const lotteryPromise = new Promise(function (resolve, reject) {
+  console.log('Lottery draw is happening ... ')
+
+  // simple set timeout func for 2 sec
+  // to encapsulate async behavior
+  setTimeout(function () {
+    if (Math.random() > 0.5) {
+      resolve('You WIN 🎉')
+    } else {
+      reject(new Error('You lost you money 🙃'))
+    }
+  }, 2000)
+})
+
+// calling our Promise
+lotteryPromise
+  .then(data => {
+    console.log(data)
+  })
+  .catch(err => {
+    console.error(err)
+  })
+
+// real work example - Promisifying
+// func return Promise
+const wait = function (seconds: number) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000)
+  })
+}
+
+wait(1)
+  .then(() => {
+    console.log('I waited for 1 second')
+    return wait(1)
+  })
+  .then(() => {
+    console.log('I waited for 2 seconds')
+    return wait(1)
+  })
+  .then(() => {
+    console.log('I waited for 3 seconds')
+    return wait(1)
+  })
+  .then(() => {
+    console.log('I waited for 4 seconds')
+  })
+
+Promise.resolve('abc').then(x => console.log(x))
+Promise.reject(new Error('xyz')).catch(x => console.error(x))

@@ -149,3 +149,7 @@ div {
 form {
   margin: 20px;
 }
+
+form label {
+  font-size: 14px;
+}
