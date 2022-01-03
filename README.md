@@ -20,3 +20,6 @@
   "bracketSpacing": true
 }
 ```
+10. `npm install --save-dev webpack webpack-cli webpack-dev-server typescript ts-loader`
+11. Create webpack.config.js and webpack.config.prod.js file and configure them
+12. Add scripts to the package.json file
